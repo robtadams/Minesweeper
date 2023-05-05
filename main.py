@@ -17,6 +17,12 @@ class minesweeper():
         # cols: an integer that holds the total number of columns in the game
         self.cols = 9
 
+        # numBombs: an integer that holds the number of bombs in the game
+        self.numBombs = 10
+
+        # bomsPrimed: a boolean that holds if the bombs in the game have been created or not
+        self.bombsPrimed = False
+
         """ List initialization """
 
         # cellArray: a 2-dimensional array that contains each cell in the game
@@ -59,6 +65,8 @@ class minesweeper():
         # If you are testing...
         if TEST:
 
+            print("\n--- CELL ARRAY TESTING ---\n")
+
             # For each row in the cellArray...
             for row in self.cellArray:
 
@@ -70,6 +78,8 @@ class minesweeper():
                     print(" ", end="")
                     
                 print()
+
+            print("\n--- BUTTON ARRAY TESTING ---\n")
 
             # For each row in the buttonArray...
             for row in self.buttonArray:
@@ -85,6 +95,7 @@ class minesweeper():
                                 
     def main(self):
 
+        # Build the game window
         self.buildWindow()
 
     def buildWindow(self):
@@ -136,20 +147,112 @@ class minesweeper():
                     window,
                     width = 2,
                     height = 1,
-                    relief = tk.RAISED
-                    # COMMAND GOES HERE
+                    relief = tk.RAISED,
+                    command = lambda row = buttonRow, col = buttonCol: self.dig(row, col)
                 )
 
                 # ... and put that button into the buttonArray
                 self.buttonArray[buttonCol][buttonRow].grid(row = buttonRow + 1, column = buttonCol)
 
     def dig(self, row, column):
-        7
+
+        """ Prime bombs """
+
+        # If the bombs aren't primed...
+        if not self.bombsPrimed:
+
+            # ... prime the bombs
+            self.prime(row, column)
+
+        """ Dig cell """
+
+    def prime(self, row, column):
+
+        """ Boolean Switch """
+
+        # Set bombsPrimed to True, so the next dig will not prime any more bombs
+        self.bombsPrimed = True
+
+        """ Temp Array construction """
+
+        # tempArray: a list that contains a duplicate of the cellArray, where each value is a coordinate
+        tempArray = []
+
+        # For each row in the grid...
+        for tempRow in range(self.rows):
+
+            # ... Build an empty list for the row
+            tempList = []
+
+            # ... for each column in the row...
+            for tempCol in range(self.cols):
+
+                # ... build a coordinate point
+                tempCoord = [tempRow, tempCol]
+
+                # Put that coordinate point into the tempList
+                tempList.append(tempCoord)
+
+            # Put that tempList of coordinate points into the tempArray
+            tempArray.append(tempList)
+
+        # Remove the clicked cell from the tempArray, which prevents a bomb from being placed there
+        tempArray[row].pop(column)
+
+        """ Testing """
+
+        # If testing...
+        if TEST:
+
+            print("\n--- TEMP ARRAY TESTING ---\n")
+
+            # For every row in the tempArray...
+            for testRow in tempArray:
+
+                # ... print the contents of that row
+                print(testRow)
+
+        """ Bomb Placement """
+
+        # If testing...
+        if TEST:
+
+            # ... place the bomb testing header
+            print("\n--- BOMB TESTING ---\n")
+
+        # For each bomb to be placed...
+        for i in range(self.numBombs):
+
+            # randRow: 
+            randRow = random.randint(0, len(tempArray) - 1)
+
+            # randCol: 
+            randCol = random.randint(0, len(tempArray[randRow]) - 1)
+
+            # randCoordinate: 
+            randCoordinate = tempArray[randRow].pop(randCol)
+
+            # If the row is empty...
+            if len(tempArray[randRow]) == 0:
+
+                # ... remove that row from tempArray
+                tempArray.pop(randRow)
+
+            # If testing...
+            if TEST:
+
+                # ... print the coordinate that was pulled from tempArray
+                print(i, ": ", randCoordinate, sep = "")
+
+            """ Testing """
+
+            # If testing...
+            if TEST:
+
+                # ... set the color of the button to red to signify that there is a bomb there
+                self.buttonArray[randCoordinate[0]][randCoordinate[1]].config(bg = "red")
 
     def reset(self):
-        7
-
-    def prime(self):
         7
 
 app = minesweeper()
