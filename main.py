@@ -18,7 +18,7 @@ class minesweeper():
         self.cols = 9
 
         # numBombs: an integer that holds the number of bombs in the game
-        self.numBombs = 10
+        self.numBombs = 80
 
         # bomsPrimed: a boolean that holds if the bombs in the game have been created or not
         self.bombsPrimed = False
@@ -197,7 +197,7 @@ class minesweeper():
             tempArray.append(tempList)
 
         # Remove the clicked cell from the tempArray, which prevents a bomb from being placed there
-        tempArray[row].pop(column)
+        tempArray[column].pop(row)
 
         """ Testing """
 
@@ -242,7 +242,7 @@ class minesweeper():
             if TEST:
 
                 # ... print the coordinate that was pulled from tempArray
-                print(i, ": ", randCoordinate, sep = "")
+                print("{0}: [{1}, {2}]".format(i + 1, randCoordinate[1], randCoordinate[0]))
 
             """ Testing """
 
