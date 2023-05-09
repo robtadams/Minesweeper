@@ -3,7 +3,7 @@ import random
 from cell import Cell
 
 global TEST
-TEST = True
+TEST = False
 
 class minesweeper():
     
@@ -142,7 +142,7 @@ class minesweeper():
             for buttonCol in range(self.cols):
 
                 # ... build a button...
-                self.buttonArray[buttonCol][buttonRow] = tk.Button(
+                self.buttonArray[buttonRow][buttonCol] = tk.Button(
                     window,
                     width = 2,
                     height = 1,
@@ -151,7 +151,7 @@ class minesweeper():
                 )
 
                 # ... and put that button into the buttonArray
-                self.buttonArray[buttonCol][buttonRow].grid(row = buttonRow + 1, column = buttonCol)
+                self.buttonArray[buttonRow][buttonCol].grid(row = buttonRow + 1, column = buttonCol)
 
     def dig(self, row, column):
 
@@ -164,6 +164,14 @@ class minesweeper():
             self.primeBombs(row, column)
 
         """ Dig cell """
+
+        clickedButton = self.buttonArray[row][column]
+
+        clickedButton.config(relief = tk.SUNKEN, text = self.cellArray[row][column].numAdjacentBombs)
+
+        if self.cellArray[row][column].numAdjacentBombs == -1:
+
+            clickedButton.config(bg = "red")
 
     def primeBombs(self, row, column):
 
@@ -238,7 +246,11 @@ class minesweeper():
                 tempArray.pop(randRow)
 
             # Set the cell at randCoordinate[0], randCoordinate[1] to be a bomb
-            self.cellArray[randCoordinate[0]][randCoordinate[1]].isBomb = True
+            bombCell = self.cellArray[randCoordinate[0]][randCoordinate[1]]
+
+            bombCell.isBomb = True
+
+            bombCell.numAdjacentBombs = -1            
 
             """ Testing """
 
@@ -249,9 +261,7 @@ class minesweeper():
                 print("{0}: [{1}, {2}]".format(i + 1, randCoordinate[0], randCoordinate[1]))
 
                 # ... set the color of the button to red to signify that there is a bomb there
-                # BUGGED:   randCoordiante appears to be backwards somehow. Row is Column and Column is Row
-                #           No idea why, but flipping the values fixes it no problem, so it remains flipped
-                self.buttonArray[randCoordinate[1]][randCoordinate[0]].config(bg = "red", text = "-1")
+                self.buttonArray[randCoordinate[0]][randCoordinate[1]].config(bg = "red", text = "-1")
             
             for rowModifier in [-1, 0, 1]:
 
@@ -269,9 +279,9 @@ class minesweeper():
 
                                 self.cellArray[tempRow][tempCol].numAdjacentBombs += 1
 
-                                # BUGGED:   Like before, the button rows and columns appear to be flipped
-                                #           Not sure why, but flipping the values fixes the problems
-                                self.buttonArray[tempCol][tempRow].config(text = self.cellArray[tempRow][tempCol].numAdjacentBombs)
+                                if TEST:
+
+                                    self.buttonArray[tempRow][tempCol].config(text = self.cellArray[tempRow][tempCol].numAdjacentBombs)
 
         # If testing...
         if TEST:
