@@ -1,147 +1,322 @@
 import tkinter as tk
 import random
+from cell import Cell
 
 global TEST
-TEST = False
+TEST = True
 
 class minesweeper():
+    
     def __init__(self):
 
-        # How many rows and columns are there in the game?
+        """ Variable initialization """
+
+        # rows: an integer that holds the total number of rows in the game
         self.rows = 9
+
+        # cols: an integer that holds the total number of columns in the game
         self.cols = 9
 
-        # A 2-dimensional array, where each cell contains the number of bombs adjacent to the cell
-        #self.cellArray = [ [0]*self.cols for _ in range(self.rows)]
+        # numBombs: an integer that holds the number of bombs in the game
+        self.numBombs = 10
 
-        # A 2-dimensional array, where each cell contains the button for the game
-        #self.buttons = [[None]*self.cols for _ in range(self.rows)]
+        # bomsPrimed: a boolean that holds if the bombs in the game have been created or not
+        self.bombsPrimed = False
 
-        # A boolean, which keeps track if the bombs have been primed or not
-        #self.bombsPrimed = False
+        """ List initialization """
 
-        # A 1-dimensional array, where each cell is the coordinate of a valid bomb location
-        self.safe = []
-        for y in range(self.cols):
-            for x in range(self.rows):
-                self.safe.append([y, x])
+        # cellArray: a 2-dimensional array that contains each cell in the game
+        self.cellArray = []
 
-        # Print out the values in the cellArray
-        if TEST:
-            for i in range(self.cols):
-                print(self.cellArray[i])
-                
-    def main(self):
+        # buttonArray: a 2-dimensional array that contains each button in the window
+        self.buttonArray = []
+
+        """ List construction """
+
+        # For each row in the game...
+        for row in range(self.rows):
+
+            # ... Create a list of cells for that row
+            cellRow = []
+
+            # ... Create a list of buttons for that row
+            buttonRow = []
+
+            # ... and for each column in the game...
+            for column in range(self.cols):
+
+                # ... Create a new cell
+                newCell = Cell(row, column)
+
+                # Put that cell into the rowList
+                cellRow.append(newCell)
+
+                # ... Create a new space for a button
+                buttonRow.append(None)
+
+            # Then place the filled cellRow into the cellArray
+            self.cellArray.append(cellRow)
+
+            # Then place the filled buttonRow into the buttonArray
+            self.buttonArray.append(buttonRow)
+
+        """ Testing """
         
-        self.buildWindow()
+        # If you are testing...
+        if TEST:
 
-        running = True
+            print("\n--- CELL ARRAY TESTING ---\n")
+
+            # For each row in the cellArray...
+            for row in self.cellArray:
+
+                # ... for each column in the row...
+                for column in row:
+
+                    # ... print out the coordinates of that cell
+                    print(column.row, column.column, sep=",", end="")
+                    print(" ", end="")
+                    
+                print()
+
+            print("\n--- BUTTON ARRAY TESTING ---\n")
+
+            # For each row in the buttonArray...
+            for row in self.buttonArray:
+
+                # ... for each column in the row...
+                for column in row:
+
+                    # ... print out the contents of the button array (None)
+                    print(column, sep = ", ", end = "")
+                    print(" ", end = "")
+
+                print()
+                                
+    def main(self):
+
+        # Build the game window
+        self.buildWindow()
 
     def buildWindow(self):
 
-        # Create the Tkinter window
+        """ Window construction """
+
+        # window: a Tkinter window that will serve as the game screen
         window = tk.Tk()
 
+        # Prevent window from being resized
         window.resizable(False, False)
 
-        # Build the status Frame
+        """ Frame construction """
+
+        # statusFrame: a Tkinter frame that contains the Reset button
         statusFrame = tk.Frame(
             master = window,
             relief = tk.FLAT
         )
 
-        statusFrame.grid(row = 0, column = 0, columnspan = 10)
-        
-        newGameButton = tk.Button(master = statusFrame, text = "Restart", command = self.reset)
-        newGameButton.grid(row = 0, column = 0, pady = 10)
+        # Place the statusFrame onto 0,0 and set it's width to the number of columns
+        statusFrame.grid(row = 0, column = 0, columnspan = self.cols)
 
+        """ Reset button construction """
+
+        # resetButton: a Tkinter button that will reset the game when pressed
+        resetButton = tk.Button(master = statusFrame, text = "Restart", command = self.reset)
+
+        # Place the button in the center of statusFrame
+        resetButton.grid(row = 0, column = 0, pady = 10)
+
+        """ Divider Label construction """
+
+        # divLabel: a Tkinter label that serves to divide the resetButton from the game grid
         divLabel = tk.Label(master = statusFrame)
         divLabel.grid(row = 1, column = 0)
 
-        for y in range(self.rows):
-            for x in range(self.cols):
-                self.buttons[x][y] = tk.Button(
+        """ Button construction """
+
+        # For each row in the grid...
+        for buttonRow in range(self.rows):
+
+            # ... for each column in the grid...
+            for buttonCol in range(self.cols):
+
+                # ... build a button...
+                self.buttonArray[buttonCol][buttonRow] = tk.Button(
                     window,
                     width = 2,
                     height = 1,
                     relief = tk.RAISED,
-                    command = lambda row = x, col = y: self.dig(row, col)
+                    command = lambda row = buttonRow, col = buttonCol: self.dig(row, col)
                 )
-                self.buttons[x][y].grid(row = x + 1, column = y)
+
+                # ... and put that button into the buttonArray
+                self.buttonArray[buttonCol][buttonRow].grid(row = buttonRow + 1, column = buttonCol)
 
     def dig(self, row, column):
 
-        if not self.bombsPrimed:
-            self.safe.pop((row + 1) * column)
-            self.prime()
+        """ Prime bombs """
 
+        # If the bombs aren't primed...
+        if not self.bombsPrimed:
+
+            # ... prime the bombs
+            self.primeBombs(row, column)
+
+        """ Dig cell """
+
+    def primeBombs(self, row, column):
+
+        """ Boolean Switch """
+
+        # Set bombsPrimed to True, so the next dig will not prime any more bombs
+        self.bombsPrimed = True
+
+        """ Temp Array construction """
+
+        # tempArray: a list that contains a duplicate of the cellArray, where each value is a coordinate
+        tempArray = []
+
+        # For each row in the grid...
+        for tempRow in range(self.rows):
+
+            # ... Build an empty list for the row
+            tempList = []
+
+            # ... for each column in the row...
+            for tempCol in range(self.cols):
+
+                # ... build a coordinate point
+                tempCoord = [tempRow, tempCol]
+
+                # Put that coordinate point into the tempList
+                tempList.append(tempCoord)
+
+            # Put that tempList of coordinate points into the tempArray
+            tempArray.append(tempList)
+
+        # Remove the clicked cell from the tempArray, which prevents a bomb from being placed there
+        tempArray[row].pop(column)
+
+        """ Testing """
+
+        # If testing...
         if TEST:
-            print(row, column)
-        self.buttons[row][column].config(relief = tk.SUNKEN)
+
+            print("\n--- TEMP ARRAY TESTING ---\n")
+
+            # For every row in the tempArray...
+            for testRow in tempArray:
+
+                # ... print the contents of that row
+                print(testRow)
+
+        """ Bomb Placement """
+
+        # If testing...
+        if TEST:
+
+            # ... place the bomb testing header
+            print("\n--- BOMB TESTING ---\n")
+
+        # For each bomb to be placed...
+        for i in range(self.numBombs):
+
+            # randRow: an integer that contains a random number from 0 to the number of rows - 1
+            randRow = random.randint(0, len(tempArray) - 1)
+
+            # randCol: an integer that contains a random number from 0 to the number of columns - 1
+            randCol = random.randint(0, len(tempArray[randRow]) - 1)
+
+            # randCoordinate: a list that contains the coordinate point randRow, randCol
+            randCoordinate = tempArray[randRow].pop(randCol)
+
+            # If the row is empty...
+            if len(tempArray[randRow]) == 0:
+
+                # ... remove that row from tempArray
+                tempArray.pop(randRow)
+
+            # Set the cell at randCoordinate[0], randCoordinate[1] to be a bomb
+            self.cellArray[randCoordinate[0]][randCoordinate[1]].isBomb = True
+
+            """ Testing """
+
+            # If testing...
+            if TEST:
+
+                # ... print the coordinate that was pulled from tempArray
+                print("{0}: [{1}, {2}]".format(i + 1, randCoordinate[0], randCoordinate[1]))
+
+                # ... set the color of the button to red to signify that there is a bomb there
+                # BUGGED:   randCoordiante appears to be backwards somehow. Row is Column and Column is Row
+                #           No idea why, but flipping the values fixes it no problem, so it remains flipped
+                self.buttonArray[randCoordinate[1]][randCoordinate[0]].config(bg = "red", text = "-1")
+            
+            for rowModifier in [-1, 0, 1]:
+
+                for colModifier in [-1, 0, 1]:
+
+                    tempRow = randCoordinate[0] + rowModifier
+
+                    tempCol = randCoordinate[1] + colModifier
+
+                    if tempRow >= 0 and tempRow < self.rows:
+
+                        if tempCol >= 0 and tempCol < self.cols:
+
+                            if not self.cellArray[tempRow][tempCol].isBomb:
+
+                                self.cellArray[tempRow][tempCol].numAdjacentBombs += 1
+
+                                # BUGGED:   Like before, the button rows and columns appear to be flipped
+                                #           Not sure why, but flipping the values fixes the problems
+                                self.buttonArray[tempCol][tempRow].config(text = self.cellArray[tempRow][tempCol].numAdjacentBombs)
+
+        # If testing...
+        if TEST:
+
+            # tempIndex: an integer that holds the number of times this test has been printed
+            tempIndex = 1
+
+            # For each row in the game...
+            for row in range(len(self.cellArray)):
+
+                # ... for each column in the row...
+                for col in range(len(self.cellArray[row])):
+
+                    # ... if the cell in self.cellArray[row][col] is a bomb...
+                    if self.cellArray[row][col].isBomb:
+
+                        # ... print "{tempIndex}: {row}, {col}" to indicate that the cell there is a bomb
+                        print("{0} : {1}, {2} is a bomb".format(tempIndex, row, col))
+
+                        # Increase the tempIndex counter by 1
+                        tempIndex += 1
 
     def reset(self):
 
-        # Reset the array containing the valid bomb cells
-        self.safe = []
-        for y in range(self.cols):
-            for x in range(self.rows):
-                self.safe.append([y, x])
+        # For each row in the game...
+        for row in range(self.rows):
 
-        # Reset the display for each button
-        for row in self.buttons:
-            for button in row:
-                button.config(relief = tk.RAISED, bg = 'SystemButtonFace', text = "")
-                self.cellArray = [ [0]*self.cols for _ in range(self.rows)]
+            # ... for each column in the game...
+            for column in range(self.cols):
 
+                # ... reset the buttons to the default color, relief, and text
+                self.buttonArray[row][column].config(bg = "SystemButtonFace", relief = tk.RAISED, text = "")
 
+                self.cellArray[row][column].isBomb = False
+
+                self.cellArray[row][column].numAdjacentBombs = 0
+
+        # Set bombsPrimed to False, so the next dig will re-prime the bombs
         self.bombsPrimed = False
 
-    def prime(self):
+        """ Testing """
 
-        # Prime the bombs
-        self.bombsPrimed = True
+        if TEST:
 
-        # Generate 10 bombs
-        #self.primed = []
-        for i in range(10):
-
-            # Get a random cell within the array
-            randCel = random.randint(0, len(self.safe) - 1)
-
-            # Remove that cell from the safe array, and get it's coordinates
-            bombCoords = self.safe.pop(randCel)
-
-            #self.primed.append(self.buttons[bombCoords[0]][bombCoords[1]])
-            
-            if TEST:
-                self.buttons[bombCoords[0]][bombCoords[1]].config(bg = "red")
-
-            # Set that cell to -1, indicating that it is a bomb
-            self.cellArray[bombCoords[0]][bombCoords[1]] = -1
-            self.buttons[bombCoords[0]][bombCoords[1]].config(text = -1)
-
-            # Check each adjacent cell
-            for y in [-1, 0, 1]:
-                for x in [-1, 0, 1]:
-
-                    # Get an adjacent cell
-                    tempX = bombCoords[0] + x
-                    tempY = bombCoords[1] + y
-
-                    # Check if that cell is in bounds...
-                    if tempX >= 0 and tempX <= 8:
-                        if tempY >= 0 and tempY <= 8:
-
-                            # Do math to that cell
-                            if self.cellArray[tempX][tempY] >= 0:
-                                self.cellArray[tempX][tempY] += 1
-                                self.buttons[tempX][tempY].config(text = self.cellArray[tempX][tempY])
-            if TEST:
-                print()
-                for i in range(self.cols):
-                    print(self.cellArray[i])
-                        
-            
-    
+            print("\n\n\n Resetting... \n\n\n")
+        
 app = minesweeper()
 app.main()
