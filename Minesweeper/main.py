@@ -3,7 +3,7 @@ import random
 from cell import Cell
 
 global TEST
-TEST = False
+TEST = True
 
 class minesweeper():
     
@@ -22,6 +22,23 @@ class minesweeper():
 
         # bomsPrimed: a boolean that holds if the bombs in the game have been created or not
         self.bombsPrimed = False
+
+        # numSafeCells: an integer that is equal to the total number of cells in the game,
+        #               minus the number of bombs. This will be used to keep track 
+        self.numSafeCells = (self.rows * self.cols) - self.numBombs
+
+        """ Testing """
+
+        # If testing...
+        if TEST:
+
+            # ... print the number of rows, columns, and bombs in the game
+            print("\n--- INITIALIZATION TESTING ---\n")
+
+            print("Number of rows: {0}".format(self.rows),
+                  "Number of columns: {0}".format(self.cols),
+                  "Number of bombs: {0}".format(self.numBombs),
+                  sep = "\n")
 
         """ List initialization """
 
@@ -163,15 +180,69 @@ class minesweeper():
             # ... prime the bombs
             self.primeBombs(row, column)
 
-        """ Dig cell """
+            if TEST:
 
+                print("\n--- DIG TESTING ---\n")
+
+        """ Dig cell """
+        
+        # If the cell the player clicked on was already clicked...
+        if self.cellArray[row][column].isClicked:
+
+            # ... then ignore that click
+            return
+        
+        # Set the isClicked variable in the clicked cell to True
+        self.cellArray[row][column].isClicked = True
+        
+        # clickedButton: a Tkinter button that is the button the user clicked on
         clickedButton = self.buttonArray[row][column]
 
-        clickedButton.config(relief = tk.SUNKEN, text = self.cellArray[row][column].numAdjacentBombs)
+        # If the clicked cell has no adjacent bombs...
+        if self.cellArray[row][column].numAdjacentBombs == 0:
 
-        if self.cellArray[row][column].numAdjacentBombs == -1:
+            # ... make the button appear clicked
+            clickedButton.config(relief = tk.SUNKEN)
 
-            clickedButton.config(bg = "red")
+            # ... for each row adjacent to the clicked cell...
+            for modRow in [-1, 0, 1]:
+
+                # ... get the adjacent rows
+                # newRow: the row adjacent to the clicked cell (Row above, same row, row below)
+                newRow = row + modRow
+
+                # ... if those rows are inside the game area...
+                if newRow >= 0 and newRow < self.rows:
+
+                    # ... for each adjacent column...
+                    for modCol in [-1, 0, 1]:
+
+                        # ... get the adjacent columns
+                        # newCol: the column adjacent to the clicked cell (Column left, same column, column right)
+                        newCol = column + modCol
+
+                        # ... if those columns are inside the game area...
+                        if newCol >= 0 and newCol < self.cols:
+
+                            if not self.cellArray[newRow][newCol].isClicked:
+                                
+                                # 
+                                if TEST:
+                                    print("{0}, {1} --> {2}, {3}".format(row, column, newRow, newCol))
+
+                                # ... dig up that cell
+                                self.dig(newRow, newCol)
+
+                    
+
+        else:
+
+            clickedButton.config(relief = tk.SUNKEN, text = self.cellArray[row][column].numAdjacentBombs)
+
+            if self.cellArray[row][column].numAdjacentBombs == -1:
+
+                clickedButton.config(bg = "red")
+
 
     def primeBombs(self, row, column):
 
@@ -248,40 +319,48 @@ class minesweeper():
             # Set the cell at randCoordinate[0], randCoordinate[1] to be a bomb
             bombCell = self.cellArray[randCoordinate[0]][randCoordinate[1]]
 
+            # Set the isBomb variable on the bomb cell to True
             bombCell.isBomb = True
 
+            # Set the bomb's number of adjacent bombs to -1 to indicate that it is, itself, a bomb
             bombCell.numAdjacentBombs = -1            
 
-            """ Testing """
-
-            # If testing...
-            if TEST:
-
-                # ... print the coordinate that was pulled from tempArray
-                print("{0}: [{1}, {2}]".format(i + 1, randCoordinate[0], randCoordinate[1]))
-
-                # ... set the color of the button to red to signify that there is a bomb there
-                self.buttonArray[randCoordinate[0]][randCoordinate[1]].config(bg = "red", text = "-1")
-            
+            # For each adjacent row...
             for rowModifier in [-1, 0, 1]:
 
+                # ... for each adjacent column...
                 for colModifier in [-1, 0, 1]:
 
+                    # ... get the adjacent row and column
                     tempRow = randCoordinate[0] + rowModifier
 
                     tempCol = randCoordinate[1] + colModifier
 
+                    # If the row is in the game boundry...
                     if tempRow >= 0 and tempRow < self.rows:
 
+                        # ... and if the column is in the game boundry...
                         if tempCol >= 0 and tempCol < self.cols:
 
+                            # ... and if the cell is not a bomb...
                             if not self.cellArray[tempRow][tempCol].isBomb:
 
+                                # ... increase the number of adjacent bombs for that cell
                                 self.cellArray[tempRow][tempCol].numAdjacentBombs += 1
+
+                                """ TESTING """
+
+                                # If testing...
+                                if TEST:
+
+                                    # ... print out the number of adjacent bombs on that cell
+                                    self.buttonArray[tempRow][tempCol].config(text = self.cellArray[tempRow][tempCol].numAdjacentBombs)
+
+                            else:
 
                                 if TEST:
 
-                                    self.buttonArray[tempRow][tempCol].config(text = self.cellArray[tempRow][tempCol].numAdjacentBombs)
+                                    self.buttonArray[tempRow][tempCol].config(bg = "red")
 
         # If testing...
         if TEST:
@@ -299,7 +378,7 @@ class minesweeper():
                     if self.cellArray[row][col].isBomb:
 
                         # ... print "{tempIndex}: {row}, {col}" to indicate that the cell there is a bomb
-                        print("{0} : {1}, {2} is a bomb".format(tempIndex, row, col))
+                        print("{0}, {1} is a bomb".format(row, col))
 
                         # Increase the tempIndex counter by 1
                         tempIndex += 1
@@ -312,12 +391,18 @@ class minesweeper():
             # ... for each column in the game...
             for column in range(self.cols):
 
+                thisButton = self.buttonArray[row][column]
+
                 # ... reset the buttons to the default color, relief, and text
-                self.buttonArray[row][column].config(bg = "SystemButtonFace", relief = tk.RAISED, text = "")
+                thisButton.config(bg = "SystemButtonFace", relief = tk.RAISED, text = "")
 
-                self.cellArray[row][column].isBomb = False
+                thisCell = self.cellArray[row][column]
 
-                self.cellArray[row][column].numAdjacentBombs = 0
+                thisCell.isBomb = False
+
+                thisCell.isClicked = False
+
+                thisCell.numAdjacentBombs = 0
 
         # Set bombsPrimed to False, so the next dig will re-prime the bombs
         self.bombsPrimed = False
