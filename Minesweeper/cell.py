@@ -1,14 +1,14 @@
 class Cell():
 
-    def __init__(self):
+    def __init__(self, row, column):
 
         # row:      an integer that contains the Y coordinate of the cell
         # The value held inside row can be from 0 to 9 (default)
-        self.row = -1
+        self.row = row
         
         # column:   an integer that contains the X coordinate of the cell
         # The value held inside column can be from 0 to 9 (default)
-        self.column = -1
+        self.column = column
 
         # isBomb: a boolean that keeps track if the cell is a bomb
         # A True value indicates that the cell is a bomb, a False value indicates that the cell isn't a bomb
