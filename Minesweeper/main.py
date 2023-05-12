@@ -427,6 +427,8 @@ class minesweeper():
 
                 thisCell.isClicked = False
 
+                thisCell.isFlagged = False
+
                 thisCell.numAdjacentBombs = 0
 
         # Set bombsPrimed to False, so the next dig will re-prime the bombs
