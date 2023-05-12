@@ -3,7 +3,7 @@ import random
 from cell import Cell
 
 global TEST
-TEST = True
+TEST = False
 
 class minesweeper():
     
@@ -112,15 +112,16 @@ class minesweeper():
                                 
     def main(self):
 
-        # Build the game window
-        self.buildWindow()
+        window = tk.Tk()
 
-    def buildWindow(self):
+        # Build the game window
+        self.buildWindow(window)
+
+        window.mainloop()
+
+    def buildWindow(self, window):
 
         """ Window construction """
-
-        # window: a Tkinter window that will serve as the game screen
-        window = tk.Tk()
 
         # Prevent window from being resized
         window.resizable(False, False)
@@ -159,7 +160,7 @@ class minesweeper():
             for buttonCol in range(self.cols):
 
                 # ... build a button...
-                self.buttonArray[buttonRow][buttonCol] = tk.Button(
+                thisButton = tk.Button(
                     window,
                     width = 2,
                     height = 1,
@@ -167,10 +168,40 @@ class minesweeper():
                     command = lambda row = buttonRow, col = buttonCol: self.dig(row, col)
                 )
 
-                # ... and put that button into the buttonArray
-                self.buttonArray[buttonRow][buttonCol].grid(row = buttonRow + 1, column = buttonCol)
+                # ... let the user flag that button in the game...
+                thisButton.bind("<Button-3>", lambda event, row = buttonRow, col = buttonCol: self.flag(event, row, col))
+
+                # ... put that button in the buttonArray ...
+                self.buttonArray[buttonRow][buttonCol] = thisButton
+
+                # ... and place that button in the game window
+                thisButton.grid(row = buttonRow + 1, column = buttonCol)
+
+    def flag(self, event, row, col):
+
+        print(event)
+
+        thisButton = self.buttonArray[row][col]
+        thisCell = self.cellArray[row][col]
+
+        if not thisCell.isFlagged and not thisCell.isClicked:
+        
+            thisButton.config(bg = "red")
+
+        else:
+
+            thisButton.config(bg = "SystemButtonFace")
+
+        thisCell.isFlagged = not thisCell.isFlagged
+
 
     def dig(self, row, column):
+
+        # If the cell the player clicked on was already clicked...
+        if self.cellArray[row][column].isClicked or self.cellArray[row][column].isFlagged:
+
+            # ... then ignore that click
+            return
 
         """ Prime bombs """
 
@@ -185,12 +216,6 @@ class minesweeper():
                 print("\n--- DIG TESTING ---\n")
 
         """ Dig cell """
-        
-        # If the cell the player clicked on was already clicked...
-        if self.cellArray[row][column].isClicked:
-
-            # ... then ignore that click
-            return
         
         # Set the isClicked variable in the clicked cell to True
         self.cellArray[row][column].isClicked = True

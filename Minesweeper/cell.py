@@ -20,6 +20,8 @@ class Cell():
         #       cell being clicked that has no adjacent bombs
         self.isClicked = False
 
+        self.isFlagged = False
+
         # numAjdacentBombs: an integer that contains the number of bombs adjacent to the cell
         # The value held inside the variable can be -1 (to indicate that it is a bomb) or 0 to 8
         # If the cell has no bombs adjacent to it, then the button associated with the cell should be empty
