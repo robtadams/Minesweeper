@@ -111,12 +111,16 @@ class minesweeper():
                 print()
                                 
     def main(self):
-
+        
+        # window: a variable that holds the Tkinter window
         window = tk.Tk()
 
         # Build the game window
         self.buildWindow(window)
 
+        window.bind("<Escape>", quit)
+
+        # Enter into the main loop of the game
         window.mainloop()
 
     def buildWindow(self, window):
@@ -178,26 +182,34 @@ class minesweeper():
                 thisButton.grid(row = buttonRow + 1, column = buttonCol)
 
     def flag(self, event, row, col):
-
-        print(event)
-
+        
+        # thisButton: the button the user right-clicked on
         thisButton = self.buttonArray[row][col]
+
+        # thisCell: the cell that corresponds to the button the user right-clicked on
         thisCell = self.cellArray[row][col]
 
+        # If the cell is not already flagged and hasn't been left-clicked on...
         if not thisCell.isFlagged and not thisCell.isClicked:
-        
+
+            # ... change the button's color to red
             thisButton.config(bg = "red")
 
+        # If the cell is already flagged...
         else:
 
+            # ... change the button's color to the default
             thisButton.config(bg = "SystemButtonFace")
 
+        # Swap the button's isFlagged state from True to False, or False to True
         thisCell.isFlagged = not thisCell.isFlagged
 
 
     def dig(self, row, column):
 
-        # If the cell the player clicked on was already clicked...
+        """ Recursion Protection """
+
+        # If the cell the player left-clicks on has already been clicked or flagged...
         if self.cellArray[row][column].isClicked or self.cellArray[row][column].isFlagged:
 
             # ... then ignore that click
@@ -210,9 +222,11 @@ class minesweeper():
 
             # ... prime the bombs
             self.primeBombs(row, column)
-
+            
+            # ... if Testing...
             if TEST:
 
+                # ... print the Dig Testing header
                 print("\n--- DIG TESTING ---\n")
 
         """ Dig cell """
@@ -249,9 +263,10 @@ class minesweeper():
                         # ... if those columns are inside the game area...
                         if newCol >= 0 and newCol < self.cols:
 
+                            # ... if the new cell hasn't already been clicked...
                             if not self.cellArray[newRow][newCol].isClicked:
                                 
-                                # 
+                                # If Testing...
                                 if TEST:
                                     print("{0}, {1} --> {2}, {3}".format(row, column, newRow, newCol))
 
@@ -259,13 +274,16 @@ class minesweeper():
                                 self.dig(newRow, newCol)
 
                     
-
+        # If the clicked cell has bombs adjacent to it...
         else:
 
+            # ... make the button appear clicked and print the number of adjacent bombs on the button
             clickedButton.config(relief = tk.SUNKEN, text = self.cellArray[row][column].numAdjacentBombs)
 
+            # If the cell is a bomb...
             if self.cellArray[row][column].numAdjacentBombs == -1:
 
+                # ... change the color of the button to red to indicate that it is a bomb
                 clickedButton.config(bg = "red")
 
 
