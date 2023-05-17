@@ -144,10 +144,10 @@ class minesweeper():
         """ Reset button construction """
 
         # resetButton: a Tkinter button that will reset the game when pressed
-        resetButton = tk.Button(master = statusFrame, text = "Restart", command = self.reset)
+        self.resetButton = tk.Button(master = statusFrame, text = "Restart", command = self.reset)
 
         # Place the button in the center of statusFrame
-        resetButton.grid(row = 0, column = 0, pady = 10)
+        self.resetButton.grid(row = 0, column = 0, pady = 10)
 
         """ Divider Label construction """
 
@@ -209,8 +209,10 @@ class minesweeper():
 
         """ Recursion Protection """
 
+        thisCell = self.cellArray[row][column]
+
         # If the cell the player left-clicks on has already been clicked or flagged...
-        if self.cellArray[row][column].isClicked or self.cellArray[row][column].isFlagged:
+        if thisCell.isClicked or thisCell.isFlagged:
 
             # ... then ignore that click
             return
@@ -274,7 +276,7 @@ class minesweeper():
                                 self.dig(newRow, newCol)
 
                     
-        # If the clicked cell has bombs adjacent to it...
+        # If the clicked cell has bombs adjacent or is a bomb...
         else:
 
             # ... make the button appear clicked and print the number of adjacent bombs on the button
@@ -285,6 +287,32 @@ class minesweeper():
 
                 # ... change the color of the button to red to indicate that it is a bomb
                 clickedButton.config(bg = "red")
+
+                for row in range(self.rows):
+
+                    for col in range(self.cols):
+
+                        thisButton = self.buttonArray[row][col]
+
+                        thisCell = self.cellArray[row][col]
+
+                        thisCell.isClicked = True
+
+                        thisButton.config(relief = tk.SUNKEN)
+
+                        if thisCell.numAdjacentBombs != 0:
+                            thisButton.config(text = thisCell.numAdjacentBombs)
+
+                        if self.cellArray[row][col].numAdjacentBombs == -1:
+                            thisButton.config(bg = "red")
+
+                self.resetButton.config(text = "Game Over")
+
+        self.numSafeCells -= 1
+
+        if self.numSafeCells == 0:
+
+            self.resetButton.config(text = "You win!")
 
 
     def primeBombs(self, row, column):
@@ -451,6 +479,10 @@ class minesweeper():
 
         # Set bombsPrimed to False, so the next dig will re-prime the bombs
         self.bombsPrimed = False
+
+        self.numSafeCells = (self.rows * self.cols) - self.numBombs
+
+        self.resetButton.config(text = "Restart")
 
         """ Testing """
 
